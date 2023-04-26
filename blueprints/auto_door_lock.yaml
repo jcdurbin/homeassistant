@@ -1,0 +1,59 @@
+blueprint:
+  name: Door Auto Lock
+  description: Lock a door after it has been unlocked for a period of time.
+  domain: automation
+  author: Jeff Durbin
+  input:
+    door_lock_entity:
+      name: Door Lock
+      selector:
+        entity:
+          domain: lock
+    door_contact_entity:
+      name: Door Contact
+      selector:
+        entity:
+          domain: binary_sensor
+    wait_period:
+      name: Wait time
+      description: Time (in minutes) to wait before locking the door.
+      default: 15
+      selector:
+        number:
+          min: 1
+          max: 60
+          unit_of_measurement: minutes
+
+mode: restart
+description: ""
+trigger:
+  - type: not_opened
+    platform: device
+    entity_id: !input door_contact_entity
+    domain: binary_sensor
+    for:
+      hours: 0
+      minutes: !input wait_period
+      seconds: 0
+  - platform: device
+    domain: lock
+    entity_id: !input door_lock_entity
+    type: unlocked
+    for:
+      hours: 0
+      minutes: 15
+      seconds: 0
+condition:
+  - condition: device
+    domain: lock
+    entity_id: !input door_lock_entity
+    type: is_unlocked
+  - type: is_not_open
+    condition: device
+    entity_id: !input door_contact_entity
+    domain: binary_sensor
+action:
+  - service: lock.lock
+    data: {}
+    target:
+      entity_id: !input door_lock_entity
