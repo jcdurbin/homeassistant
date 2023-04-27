@@ -1,6 +1,6 @@
 blueprint:
   name: Door Auto Lock
-  description: Lock a door after it has been unlocked for a period of time.
+  description: Lock a door after it has been unlocked or closed for a period of time.
   domain: automation
   author: Jeff Durbin
   input:
@@ -8,51 +8,58 @@ blueprint:
       name: Door Lock
       selector:
         entity:
-          domain: lock
+          domain:
+            - lock
+          multiple: false
     door_contact_entity:
       name: Door Contact
       selector:
         entity:
-          domain: binary_sensor
-          device_class: door
+          domain:
+            - binary_sensor
+          device_class:
+            - door
+          multiple: false
     wait_period:
       name: Wait time
       description: Time (in minutes) to wait before locking the door.
       default: 15
       selector:
         number:
-          min: 1
-          max: 60
+          min: 1.0
+          max: 60.0
           unit_of_measurement: minutes
-
+          step: 1.0
+          mode: slider
+  source_url: https://github.com/jcdurbin/homeassistant/blob/main/blueprints/auto_door_lock.yaml
 mode: restart
 description: ""
 trigger:
-  - type: not_opened
-    platform: device
-    entity_id: !input door_contact_entity
-    domain: binary_sensor
+  - platform: state
+    id: door_unlocked
+    entity_id:
+      - !input door_lock_entity
+    to: unlocked
     for:
       hours: 0
       minutes: !input wait_period
       seconds: 0
-  - platform: device
-    domain: lock
-    entity_id: !input door_lock_entity
-    type: unlocked
+  - platform: state
+    id: door_closed
+    entity_id: !input door_contact_entity
+    to: "off"
     for:
       hours: 0
-      minutes: 15
+      minutes: !input wait_period
       seconds: 0
 condition:
-  - condition: device
-    domain: lock
-    entity_id: !input door_lock_entity
-    type: is_unlocked
-  - type: is_not_open
-    condition: device
+  - condition: state
     entity_id: !input door_contact_entity
-    domain: binary_sensor
+    state: "off"
+  - condition: state
+    entity_id:
+      - !input door_lock_entity
+    state: unlocked
 action:
   - service: lock.lock
     data: {}
