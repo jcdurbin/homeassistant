@@ -21,21 +21,24 @@ blueprint:
       selector:
         number:
           min: 1
-          max: 120
+          max: 60
           unit_of_measurement: minutes
+
 mode: restart
 description: ""
 trigger:
   - type: not_opened
+    platform: device
     entity_id: !input door_contact_entity
     domain: binary_sensor
     for:
       hours: 0
       minutes: !input wait_period
       seconds: 0
-  - type: unlocked
+  - platform: device
+    domain: lock
     entity_id: !input door_lock_entity
-    domain: lock        
+    type: unlocked
     for:
       hours: 0
       minutes: 15
