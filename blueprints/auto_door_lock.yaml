@@ -7,12 +7,12 @@ blueprint:
     door_lock_entity:
       name: Door Lock
       selector:
-        device:
+        entity:
           domain: lock
     door_contact_entity:
       name: Door Contact
       selector:
-        device:
+        entity:
           domain: binary_sensor
           device_class: door
     wait_period:
