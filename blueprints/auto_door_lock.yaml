@@ -9,11 +9,13 @@ blueprint:
       selector:
         entity:
           domain: lock
+          device_class: lock
     door_contact_entity:
       name: Door Contact
       selector:
         entity:
-          domain: binary_sensor
+          domain: door
+          device_class: binary_sensor
     wait_period:
       name: Wait time
       description: Time (in minutes) to wait before locking the door.
@@ -21,24 +23,21 @@ blueprint:
       selector:
         number:
           min: 1
-          max: 60
+          max: 120
           unit_of_measurement: minutes
-
 mode: restart
 description: ""
 trigger:
   - type: not_opened
-    platform: device
     entity_id: !input door_contact_entity
     domain: binary_sensor
     for:
       hours: 0
       minutes: !input wait_period
       seconds: 0
-  - platform: device
-    domain: lock
+  - type: unlocked
     entity_id: !input door_lock_entity
-    type: unlocked
+    domain: lock        
     for:
       hours: 0
       minutes: 15
